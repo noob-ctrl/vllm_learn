@@ -76,7 +76,7 @@ class EngineCore:
         self.log_stats = log_stats
 
         # Setup Model.
-        self.model_executor = executor_class(vllm_config)
+        self.model_executor = executor_class(vllm_config)   # 初始化executor实例，初始化时会执行_init_executor方法
         if executor_fail_callback is not None:
             self.model_executor.register_failure_callback(
                 executor_fail_callback)

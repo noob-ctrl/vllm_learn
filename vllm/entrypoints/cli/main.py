@@ -40,6 +40,7 @@ def main():
     )
     subparsers = parser.add_subparsers(required=False, dest="subparser")
     cmds = {}
+    # 下面这一小段代码暂时没有看懂，但主要作用就是args.dispatch_function会绑定serve.py文件中的cmd方法进行可以去执行run_server方法
     for cmd_module in CMD_MODULES:
         new_cmds = cmd_module.cmd_init()
         for cmd in new_cmds:

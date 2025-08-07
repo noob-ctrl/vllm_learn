@@ -175,6 +175,7 @@ class DefaultModelLoader(BaseModelLoader):
             self, source: "Source"
     ) -> Generator[tuple[str, torch.Tensor], None, None]:
         """Get an iterator for the model weights based on the load format."""
+        # hf_folder就是模型目录路径，hf_weights_files是一个列表，各个权重文件的路径，use_safetensors为True
         hf_folder, hf_weights_files, use_safetensors = self._prepare_weights(
             source.model_or_path, source.revision, source.fall_back_to_pt,
             source.allow_patterns_overrides)
@@ -194,8 +195,8 @@ class DefaultModelLoader(BaseModelLoader):
                     hf_weights_files,
                     self.load_config.use_tqdm_on_load,
                 )
-            else:
-                weights_iterator = safetensors_weights_iterator(
+            else:   # load_format默认为auto，所以一般是走这个分支。
+                weights_iterator = safetensors_weights_iterator(    # 以此便利所有的safetensors权重，然后yield每个权重的（name，weights）
                     hf_weights_files,
                     self.load_config.use_tqdm_on_load,
                 )
@@ -220,7 +221,7 @@ class DefaultModelLoader(BaseModelLoader):
 
         if self.counter_before_loading_weights == 0.0:
             self.counter_before_loading_weights = time.perf_counter()
-        # Apply the prefix.
+        # Apply the prefix. 列表表达式格式，将[]变成()后就是生成器类型generator类型了，并不是tuple类型
         return ((source.prefix + name, tensor)
                 for (name, tensor) in weights_iterator)
 
@@ -230,7 +231,7 @@ class DefaultModelLoader(BaseModelLoader):
         model: nn.Module,
     ) -> Generator[tuple[str, torch.Tensor], None, None]:
         primary_weights = DefaultModelLoader.Source(
-            model_config.model,
+            model_config.model,     # 该值就是模型路径
             model_config.revision,
             prefix="",
             fall_back_to_pt=getattr(model, "fall_back_to_pt_during_load",
@@ -244,7 +245,7 @@ class DefaultModelLoader(BaseModelLoader):
             Iterable[DefaultModelLoader.Source],
             getattr(model, "secondary_weights", ()),
         )
-        for source in secondary_weights:
+        for source in secondary_weights:    # 一般情况下，该secondary_weights为空（）
             yield from self._get_weights_iterator(source)
 
     def download_model(self, model_config: ModelConfig) -> None:
@@ -256,6 +257,7 @@ class DefaultModelLoader(BaseModelLoader):
     def load_weights(self, model: nn.Module,
                      model_config: ModelConfig) -> None:
         weights_to_load = {name for name, _ in model.named_parameters()}
+        # get_all_weights方法会返回一个generator生成器类型，每个元素是(name,weight_tensors)类型
         loaded_weights = model.load_weights(
             self.get_all_weights(model_config, model))
         self.counter_after_loading_weights = time.perf_counter()

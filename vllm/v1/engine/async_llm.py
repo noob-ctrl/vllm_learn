@@ -115,7 +115,7 @@ class AsyncLLM(EngineClient):
                                                 log_stats=self.log_stats)
 
         # EngineCore (starts the engine in background process).
-        self.engine_core = EngineCoreClient.make_async_mp_client(
+        self.engine_core = EngineCoreClient.make_async_mp_client(   # 加载模型会在这个方法中执行
             vllm_config=vllm_config,
             executor_class=executor_class,
             log_stats=self.log_stats,
@@ -164,7 +164,7 @@ class AsyncLLM(EngineClient):
         return cls(
             vllm_config=vllm_config,
             executor_class=Executor.get_class(vllm_config),
-            start_engine_loop=start_engine_loop,
+            start_engine_loop=start_engine_loop,    # 采用默认值 True
             stat_loggers=stat_loggers,
             log_requests=not disable_log_requests,
             log_stats=not disable_log_stats,

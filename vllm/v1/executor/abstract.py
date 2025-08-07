@@ -25,7 +25,7 @@ class Executor(ExecutorBase):
     For methods shared by v0 and v1, define them in ExecutorBase"""
 
     @staticmethod
-    def get_class(vllm_config: VllmConfig) -> type["Executor"]:
+    def get_class(vllm_config: VllmConfig) -> type["Executor"]:  # TODO 这里单卡是uni，后面确认多卡是多少
         executor_class: type[Executor]
         parallel_config = vllm_config.parallel_config
         distributed_executor_backend = (
@@ -62,7 +62,7 @@ class Executor(ExecutorBase):
         underlying workers.
         """
         self.collective_rpc("initialize_from_config",
-                            args=(kv_cache_configs, ))
+                            args=(kv_cache_configs,))
         self.collective_rpc("compile_or_warm_up_model")
 
     def register_failure_callback(self, callback: FailureCallback):
@@ -81,11 +81,11 @@ class Executor(ExecutorBase):
         return output
 
     def execute_model(
-        self,
-        scheduler_output,
+            self,
+            scheduler_output,
     ) -> Union[ModelRunnerOutput, Future[ModelRunnerOutput]]:
         output = self.collective_rpc("execute_model",
-                                     args=(scheduler_output, ))
+                                     args=(scheduler_output,))
         return output[0]
 
     @property
@@ -93,7 +93,7 @@ class Executor(ExecutorBase):
         return 1
 
     def profile(self, is_start: bool = True):
-        self.collective_rpc("profile", args=(is_start, ))
+        self.collective_rpc("profile", args=(is_start,))
 
 
 class UniProcExecutor(UniProcExecutorV0, Executor):

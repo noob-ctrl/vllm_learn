@@ -566,7 +566,7 @@ class WorkerWrapperBase:
                               bytes)
             worker_class = cloudpickle.loads(
                 self.vllm_config.parallel_config.worker_cls)
-        if self.vllm_config.parallel_config.worker_extension_cls:
+        if self.vllm_config.parallel_config.worker_extension_cls:   # 默认情况下为空
             worker_extension_cls = resolve_obj_by_qualname(
                 self.vllm_config.parallel_config.worker_extension_cls)
             extended_calls = []

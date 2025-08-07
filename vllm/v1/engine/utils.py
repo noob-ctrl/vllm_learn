@@ -93,7 +93,7 @@ class CoreEngineProcManager:
         log_stats: bool,
         client_handshake_address: Optional[str] = None,
     ):
-        context = get_mp_context()
+        context = get_mp_context()  # multiprocessing的context，mp_method为spawn
         common_kwargs = {
             "vllm_config": vllm_config,
             "local_client": local_client,
@@ -130,7 +130,7 @@ class CoreEngineProcManager:
                 with set_device_control_env_var(
                         vllm_config, local_dp_rank) if (
                             data_parallel) else contextlib.nullcontext():
-                    proc.start()
+                    proc.start()    # 启动新的进程进行执行target_fn方法，然后就去执行后续内容了
         finally:
             # Kill other procs if not all are running.
             if self.finished_procs():
@@ -657,10 +657,10 @@ def launch_core_engines(
     # front-end processes. In external_dp_lb mode, ranks > 0 handshake with
     # their co-located frontend and also the rank 0 front-end, and hence this
     # will be False.
-    handshake_local_only = offline_mode or local_engine_count == dp_size
+    handshake_local_only = offline_mode or local_engine_count == dp_size    # 单机单卡为True
 
-    handshake_address = get_engine_client_zmq_addr(
-        handshake_local_only, host, parallel_config.data_parallel_rpc_port)
+    handshake_address = get_engine_client_zmq_addr(     # 获取一个ipc地址，字符串格式，一般为固定格式：ipc://tmp/uuid()
+        handshake_local_only, host, parallel_config.data_parallel_rpc_port)     # host 为127.0.0.1
 
     if local_engines_only and dp_rank > 0:
         assert not handshake_local_only
@@ -671,14 +671,14 @@ def launch_core_engines(
         client_handshake_address = None
 
     with zmq_socket_ctx(local_handshake_address, zmq.ROUTER,
-                        bind=True) as handshake_socket:
+                        bind=True) as handshake_socket:     # 创建一个zmq socket，handshake_socket
 
         from vllm.v1.engine.core import EngineCoreProc
 
         # Start local engines.
         if local_engine_count:
-            local_engine_manager = CoreEngineProcManager(
-                EngineCoreProc.run_engine_core,
+            local_engine_manager = CoreEngineProcManager(   # 初始化该类的时候，内部会启动新的进程执行EngineCoreProc.run_engine_core方法
+                EngineCoreProc.run_engine_core,     # EngineCoreProc.run_engine_core方法则是加载model等启动进程的关键，会执行模型加载等操作。重点在内部EngineCoreProc类的初始化时
                 vllm_config=vllm_config,
                 executor_class=executor_class,
                 log_stats=log_stats,
@@ -760,7 +760,7 @@ def wait_for_engine_startup(
             raise RuntimeError(f"Message from engine with unexpected data "
                                f"parallel rank: {eng_index}")
         msg = msgspec.msgpack.decode(ready_msg_bytes)
-        status, local, headless = msg["status"], msg["local"], msg["headless"]
+        status, local, headless = msg["status"], msg["local"], msg["headless"]  # 对应core.py文件中的startup_handshake方法
         if local != engine.local:
             raise RuntimeError(f"{status} message from "
                                f"{'local' if local else 'remote'} "

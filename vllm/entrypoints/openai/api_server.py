@@ -157,7 +157,7 @@ async def build_async_engine_client(
 
     # Context manager to handle engine_client lifecycle
     # Ensures everything is shutdown and cleaned up on error/exit
-    engine_args = AsyncEngineArgs.from_cli_args(args)
+    engine_args = AsyncEngineArgs.from_cli_args(args)   # vllm引擎的参数，基本上可以理解为所有和vllm相关的参数集合类
 
     if disable_frontend_multiprocessing is None:
         disable_frontend_multiprocessing = bool(
@@ -189,11 +189,11 @@ async def build_async_engine_client_from_engine_args(
     """
 
     # Create the EngineConfig (determines if we can use V1).
-    vllm_config = engine_args.create_engine_config(usage_context=usage_context)
+    vllm_config = engine_args.create_engine_config(usage_context=usage_context)     # 构造vllm_config实例
 
     # V1 AsyncLLM.
     if envs.VLLM_USE_V1:
-        if disable_frontend_multiprocessing:
+        if disable_frontend_multiprocessing:    # 默认为False
             logger.warning(
                 "V1 is enabled, but got --disable-frontend-multiprocessing. "
                 "To disable frontend multiprocessing, set VLLM_USE_V1=0.")
@@ -1829,7 +1829,7 @@ async def run_server_worker(listen_address,
 
     async with build_async_engine_client(
             args,
-            client_config=client_config,
+            client_config=client_config,    # client_config默认为None
     ) as engine_client:
         maybe_register_tokenizer_info_endpoint(args)
         app = build_app(args)

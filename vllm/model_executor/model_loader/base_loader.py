@@ -37,7 +37,7 @@ class BaseModelLoader(ABC):
         device_config = vllm_config.device_config
         load_config = vllm_config.load_config
         load_device = device_config.device if load_config.device is None else \
-                      load_config.device
+            load_config.device
         target_device = torch.device(load_device)
         with set_default_torch_dtype(model_config.dtype):
             with target_device:
@@ -46,6 +46,6 @@ class BaseModelLoader(ABC):
 
             logger.debug("Loading weights on %s ...", load_device)
             # Quantization does not happen in `load_weights` but after it
-            self.load_weights(model, model_config)
+            self.load_weights(model, model_config)  # 正式开始加载模型参数，调用DefaultModelLoader的load_weights方法
             process_weights_after_loading(model, model_config, target_device)
         return model.eval()

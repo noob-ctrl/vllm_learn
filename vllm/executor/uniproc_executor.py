@@ -19,7 +19,6 @@ logger = init_logger(__name__)
 
 
 class UniProcExecutor(ExecutorBase):
-
     uses_ray: bool = False
 
     def _init_executor(self) -> None:
@@ -44,8 +43,11 @@ class UniProcExecutor(ExecutorBase):
             distributed_init_method=distributed_init_method,
             is_driver_worker=is_driver_worker,
         )
-        self.collective_rpc("init_worker", args=([kwargs], ))
+        # 调用WorkerWrapperBase的init_worker方法，WorkerWrapperBase中创建一个Worker类实例
+        self.collective_rpc("init_worker", args=([kwargs],))
+        # 调用WorkerWrapperBase的init_device方法，设置相关的cuda device，WorkerWrapperBase中创建一个model_runner类实例
         self.collective_rpc("init_device")
+        # 调用WorkerWrapperBase的load_model方法，进而调用model_runner的load_model方法来加载模型
         self.collective_rpc("load_model")
 
     def collective_rpc(self,
@@ -67,7 +69,7 @@ class UniProcExecutor(ExecutorBase):
             self, reconfig_request: ReconfigureDistributedRequest) -> None:
         self.driver_worker.reinitialize_distributed(reconfig_request)
         if reconfig_request.new_data_parallel_rank == \
-        ReconfigureRankType.SHUTDOWN_CURRENT_RANK:
+                ReconfigureRankType.SHUTDOWN_CURRENT_RANK:
             self.shutdown()
         return
 
@@ -98,12 +100,12 @@ class ExecutorWithExternalLauncher(UniProcExecutor):
         """
         assert self.vllm_config.scheduler_config.delay_factor == 0.0, \
             ("ExecutorWithExternalLauncher needs deterministic "
-            "execution, so it"
-            "does not support delay_factor in scheduling")
+             "execution, so it"
+             "does not support delay_factor in scheduling")
         if envs.VLLM_USE_V1:
             assert not envs.VLLM_ENABLE_V1_MULTIPROCESSING, \
-            ("To get deterministic execution in V1, "
-            "please set VLLM_ENABLE_V1_MULTIPROCESSING=0")
+                ("To get deterministic execution in V1, "
+                 "please set VLLM_ENABLE_V1_MULTIPROCESSING=0")
         self.driver_worker = WorkerWrapperBase(vllm_config=self.vllm_config,
                                                rpc_rank=0)
         # engines are launched in torchrun-compatible launchers
@@ -124,7 +126,7 @@ class ExecutorWithExternalLauncher(UniProcExecutor):
             distributed_init_method=distributed_init_method,
             is_driver_worker=is_driver_worker,
         )
-        self.collective_rpc("init_worker", args=([kwargs], ))
+        self.collective_rpc("init_worker", args=([kwargs],))
         self.collective_rpc("init_device")
         self.collective_rpc("load_model")
 

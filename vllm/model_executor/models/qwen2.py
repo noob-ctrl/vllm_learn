@@ -489,6 +489,7 @@ class Qwen2ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
 
     def load_weights(self, weights: Iterable[tuple[str,
                                                    torch.Tensor]]) -> set[str]:
+        # vllm.model_executor.models.utils.AutoWeightsLoader
         loader = AutoWeightsLoader(
             self,
             skip_prefixes=(["lm_head."]
