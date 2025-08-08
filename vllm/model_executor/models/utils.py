@@ -217,7 +217,8 @@ class AutoWeightsLoader:
         # Avoid infinite recursion since this function is typically
         # called inside load_weights of the module itself
         if module != self.module:
-            module_load_weights = getattr(module, "load_weights", None)
+            module_load_weights = getattr(module, "load_weights", None) # 具体内部模型的load_weights方法，比如Qwen2ForCausalLM
+            # 模型内的Qwen2Model模型的load_weights
             if callable(module_load_weights):
                 loaded_params = module_load_weights(weights)
                 if loaded_params is None:
